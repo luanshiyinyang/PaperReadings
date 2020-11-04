@@ -18,7 +18,7 @@
 
 ReLU 在深度学习的发展中地位举足轻重，它简单而且高效，极大地提高了深度网络的性能，被很多 CV 任务的经典网络使用。不过 ReLU 及其变种（无参数的 leaky ReLU 和有参数的 PReLU）都是静态的，也就是说他们最终的参数都是固定的。**那么自然会引发一个问题，能否根据输入的数据动态调整 ReLU 的参数呢？**
 
-![](./assets/dyrelu.png)
+![](https://i.loli.net/2020/11/04/MYRCQ4ohxpecgnO.png)
 
 针对上述问题，论文提出了 DY-ReLU，它是一个分段函数$f_{\boldsymbol{\theta}(\boldsymbol{x})}(\boldsymbol{x})$，其参数由超函数$\boldsymbol{\theta {(x)}}$根据$x$计算得到。如上图所示，输入$x$在进入激活函数前分成两个流分别输入$\boldsymbol{\theta {(x)}}$和$f_{\boldsymbol{\theta}(\boldsymbol{x})}(\boldsymbol{x})$，前者用于获得激活函数的参数，后者用于获得激活函数的输出值。超函数$\boldsymbol{\theta {(x)}}$能够编码输入$x$的各个维度（对卷积网络而言，这里指的就是通道，所以原文采用 c 来标记）的全局上下文信息来自适应激活函数$f_{\boldsymbol{\theta}(\boldsymbol{x})}(\boldsymbol{x})$。
 
@@ -28,7 +28,7 @@ ReLU 在深度学习的发展中地位举足轻重，它简单而且高效，极
 
 ### 定义
 
-![](./assets/relu.png)
+![](https://i.loli.net/2020/11/04/zenjQDE6FkM87hf.png)
 
 原始的 ReLU 为$\boldsymbol{y}=\max \{\boldsymbol{x}, 0\}$，这是一个非常简单的分段函数。对于输入向量$x$的第$c$个通道的输入$x_c$，对应的激活函数可以记为$y_{c}=\max \left\{x_{c}, 0\right\}$。进而，ReLU 可以统一表示为带参分段线性函数$y_{c}=\max _{k}\left\{a_{c}^{k} x_{c}+b_{c}^{k}\right\}$，基于此提出下式动态 ReLU 来针对$\boldsymbol{x}=\left\{x_{c}\right\}$自适应$a_c^k$和$b_c^k$。
 
@@ -47,7 +47,7 @@ $$a_{c}^{k}(\boldsymbol{x})=\alpha^{k}+\lambda_{a} \Delta a_{c}^{k}(\boldsymbol{
 
 其中，$\alpha^k$和$\beta^k$分别为$a_c^k$和$b_c^k$的初始值，$\lambda_a$和$\lambda_b$为残差范围控制标量，也就是加的权。$\alpha^k$和$\beta^k$以及$\lambda_a$、$\lambda_b$都是超参数。若$K=2$，有$\alpha^{1}=1, \alpha^{2}=\beta^{1}=\beta^{2}=0$，这就是原始 ReLU。默认的$\lambda_a$和$\lambda_b$分别为 1.0 和 0.5。
 
-![](./assets/relation.png)
+![](https://i.loli.net/2020/11/04/CRsN7KLjh4QIAHZ.png)
 
 对于学习到不同的参数，DY-ReLU 会有不同的形式，它可以等价于 ReLU、Leaky ReLU 和 PReLU，也可以等价于 SE 模块或者 Maxout 算子，至于具体的形式依据输入而改变，是一种非常灵活的动态激活函数。
 
@@ -59,7 +59,7 @@ $$a_{c}^{k}(\boldsymbol{x})=\alpha^{k}+\lambda_{a} \Delta a_{c}^{k}(\boldsymbol{
 
 经过对比实验得出 DY-ReLU-B 更适合图像分类，DY-ReLU-C 更适合关键点检测任务，在几个典型网络上改用论文提出的 DY-ReLU，效果如下图，不难发现，在轻量级网络上突破较大。
 
-![](./assets/imagenet.png)
+![](https://i.loli.net/2020/11/04/OqLMQBNxGpcTdam.png)
 
 ### 源码解析
 
