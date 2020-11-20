@@ -1,1 +1,4 @@
 assets/
+.vscode/
+.idea/
+__pycache__
