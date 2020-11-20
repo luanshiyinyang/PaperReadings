@@ -4,9 +4,17 @@
 
 自从 FairMOT 的公开以来，MOT 似乎进入了一个高速发展阶段，先是 CenterTrack 紧随其后发布并开源 ，然后是后来的 RetinaTrack、MAT、FGAGT 等 SOTA 方法出现，它们不断刷新着 MOT Challenge 的榜单。最近，CSTrack 这篇文章则在 JDE 范式的基础上进行了改进，获得了相当不错的跟踪表现（基本上暂时稳定在榜单前 5），本文就简单解读一下这篇短文（目前在 Arxiv 上开放的是一个 4 页短文的版本）。
 
+- 论文标题
+
+  Rethinking the competition between detection and ReID in Multi-Object Tracking
+
 - 论文地址
 
   http://arxiv.org/abs/2010.12138
+
+- 论文源码
+
+  https://github.com/JudasDie/SOTS
 
 ## 介绍
 
