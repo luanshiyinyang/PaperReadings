@@ -67,7 +67,7 @@ RPN 的引入使得端到端目标检测框架得以实现，这大大提高了�
 
 ## **Sparse R-CNN**
 
-距离 Faster R-CNN 的出现已经过去了 5 年的时间，这 5 年是目标检测告诉发展的 5 年，在 Faster R-CNN 之后出现了 anchor-based 的单阶段目标跟踪范式，它主张去掉 RPN 直接对 anchor 进行处理，在速度上获得了卓越的表现，如 SSD、RetinaNet 等，它们成为了目标检测的新 SOTA。再后来，受到工业界普遍关注的高效[anchor-free 方法](https://zhouchen.blog.csdn.net/article/details/108032597)为目标检测开拓了全新的方向，如 FCOS、CenterNet 等。今年，FaceBook 发布了使用 Transformer 构建的 DETR 框架，它只需要少量的低维输入即可获得 SOTA 检测表现，这为稀疏检测带来了一丝契机。
+距离 Faster R-CNN 的出现已经过去了 5 年的时间，这 5 年是目标检测高速发展的 5 年，在 Faster R-CNN 之后出现了 anchor-based 的单阶段目标跟踪范式，它主张去掉 RPN 直接对 anchor 进行处理，在速度上获得了卓越的表现，如 SSD、RetinaNet 等，它们成为了目标检测的新 SOTA。再后来，受到工业界普遍关注的高效[anchor-free 方法](https://zhouchen.blog.csdn.net/article/details/108032597)为目标检测开拓了全新的方向，如 FCOS、CenterNet 等。今年，FaceBook 发布了使用 Transformer 构建的 DETR 框架，它只需要少量的低维输入即可获得 SOTA 检测表现，这为稀疏检测带来了一丝契机。
 
 最近，沿着目标检测中 Dense 和 Dense-to-Sparse 的框架的设计思路，Sparse R-CNN 建立了一种彻底的稀疏框架，它完全脱离了 anchor、RPN 和 NMS 后处理等设计。
 
