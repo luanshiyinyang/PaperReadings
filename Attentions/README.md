@@ -26,8 +26,8 @@
 6. GSoP-Net(Global Second-order Pooling Convolutional Networks)
 7. ECA-Net(Efficient Channel Attention for Deep Convolutional Neural Networks)
 8. GC-Net(Global context network for medical image segmentation)
-9. CC-Net(Criss-Cross Attention for Semantic Segmentation)
-10. SKNet(Selective Kernel Networks)
+9. SKNet(Selective Kernel Networks)
+10. CC-Net(Criss-Cross Attention for Semantic Segmentation)
 11. ResNeSt(ResNeSt: Split-Attention Networks)
 12. Triplet Attention(Convolutional Triplet Attention Module)
 
@@ -88,7 +88,7 @@ $$
 \mathbf{z}_{i}=W_{z} \mathbf{y}_{i}+\mathbf{x}_{i}
 $$
 
-一个时空格式的 non-local 模块如下图，我们从二维图像的角度来看，可以忽略那个$T$，直接将其置为 1 即可。所以，输入是$(h,w,1024)$，经过两个权重变换$W_\theta$和$W_\phi$得到降维后的两个特征图，都为$(h, w, 512)$，它们两者 reshape 后变为$(h\times w, 512)$，之后再其中一个转置后矩阵乘法另一个，得到相似性矩阵$(h\times w, h \times w)$，然后再最后一个维度上进行 softmax 操作。上述这个操作得到一种自注意力图，表示每个像素与其他位置像素的关系。然后将原始输入通过变换$g$得到一个$(h\times w, 512)$的输入矩阵，它和刚刚的注意力图矩阵乘法，输出为$(h\times w, 512)$，这时，每个位置的输出值其实就是其他位置的加权求和的结果。最后，通过 1x1 卷积来升维恢复通道，保证输入输出同维。
+上面是数学上的定义，具体来看，一个时空格式的 non-local 模块如下图，我们从二维图像的角度来看，可以忽略那个$T$，直接将其置为 1 即可。所以，输入是$(h,w,1024)$，经过两个权重变换$W_\theta$和$W_\phi$得到降维后的两个特征图，都为$(h, w, 512)$，它们两者 reshape 后变为$(h\times w, 512)$，之后再其中一个转置后矩阵乘法另一个，得到相似性矩阵$(h\times w, h \times w)$，然后再最后一个维度上进行 softmax 操作。上述这个操作得到一种自注意力图，表示每个像素与其他位置像素的关系。然后将原始输入通过变换$g$得到一个$(h\times w, 512)$的输入矩阵，它和刚刚的注意力图矩阵乘法，输出为$(h\times w, 512)$，这时，每个位置的输出值其实就是其他位置的加权求和的结果。最后，通过 1x1 卷积来升维恢复通道，保证输入输出同维。
 ![](/assets/non-local-block.png)
 
 这篇文章有很不错的[第三方 Pytorch 实现](https://github.com/AlexHex7/Non-local_pytorch)，想了解更多细节的可以去看看源码和论文，其实实现是很简单的。
@@ -97,4 +97,18 @@ $$
 
 ### **SENet**
 
-SENet 应该算是 Non-local 的同期成果
+SENet 应该算是 Non-local 的同期成果，我在[之前的文章](https://zhouchen.blog.csdn.net/article/details/110826497)中专门解读过，这里就大概的说一下。
+
+卷积操作是卷积神经网络的核心，卷积可以理解为在一个局部感受野范围内将空间维度信息和特征维度信息进行聚合，聚合的方式是加和操作。然而想要提高卷积神经网络的性能其实是很难的，需要克服很多的难点。为了获得更加丰富的空间信息，很多工作被提出，如下图使用多尺度信息聚合的Inception。
+
+![](./assets/inception.png)
+
+那么，自然会想到，能否在通道维度上进行特征融合呢？其实卷积操作默认是有隐式的通道信息融合的，它对所有通道的特征图进行融合得到输出特征图（这就默认每个通道的特征是同权的），这就是为什么一个32通道的输入特征图，要求输出64通道特征图，需要$32\times64$个卷积核（这个32也可以理解为卷积核的深度）。通道方面的注意力也不是没人进行尝试，一些轻量级网络使用分组卷积和深度可分离卷积对通道进行分组操作，但这本质上只是为了减少参数，并没有什么特征融合上的贡献。
+
+所以，SENet出现了，它从从每个通道的特征图应该不同权的角度出发，更加关注通道之间的关系，让模型学习到不同通道的重要程度从而对其加权，即显式建模不同通道之间的关系。为此，设计了SE（Squeeze-and-Excitation）模块，如下图所示。SE模块的思路很简单，先通过全局平均池化获得每个通道的全局空间表示，再利用这个表示学习到每个通道的重要性权重，这些权重作用与原始特征图的各个通道，得到通道注意力后的特征图。由于轻量简洁，SE模块可以嵌入任何主流的卷积神经网络模型中，因为其可以保证输入输出同维。
+
+![](./assets/SE-block.png)
+
+### **CBAM**
+
+### **BAM**
