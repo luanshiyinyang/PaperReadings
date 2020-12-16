@@ -35,43 +35,66 @@
 
 ### **NL**
 
-Non-local Neural Networks应该算是引入自注意力机制比较早期的工作，后来的语义分割里各种自注意力机制都可以认为是Non-local的特例，这篇文章作者中同样有熟悉的何恺明大神😂。
+Non-local Neural Networks 应该算是引入自注意力机制比较早期的工作，后来的语义分割里各种自注意力机制都可以认为是 Non-local 的特例，这篇文章作者中同样有熟悉的何恺明大神 😂。
 
-首先聊聊Non-local的动机，我们知道，CV和NLP任务都需要捕获长程依赖（远距离信息交互），卷积本身是一种局部算子，CNN中一般通过堆叠多层卷积层获得更大感受野来捕获这种长程依赖的，这存在一些严重的问题：效率低；深层网络的设计比较困难；较远位置的消息传递，局部操作是很困难的。所以，收到非局部均值滤波的启发，作者设计了一个泛化、简单、可直接嵌入主流网络的non-local算子，它可以捕获时间（一维时序数据）、空间（图像）和时空（视频）的长程依赖。
+首先聊聊 Non-local 的动机，我们知道，CV 和 NLP 任务都需要捕获长程依赖（远距离信息交互），卷积本身是一种局部算子，CNN 中一般通过堆叠多层卷积层获得更大感受野来捕获这种长程依赖的，这存在一些严重的问题：效率低；深层网络的设计比较困难；较远位置的消息传递，局部操作是很困难的。所以，收到非局部均值滤波的启发，作者设计了一个泛化、简单、可直接嵌入主流网络的 non-local 算子，它可以捕获时间（一维时序数据）、空间（图像）和时空（视频）的长程依赖。
 
-![](./assets/non-local-1.png)
+![](./assets/non-local-sample.png)
 
-首先，Non-local操作早在图像处理中已经存在，典型代表就是非局部均值滤波，到了深度学习时代，在计算机视觉中，这种通过关注特征图中所有位置并在嵌入空间中取其加权平均值来计算某位置处的响应的方法，就叫做**自注意力**。
+首先，Non-local 操作早在图像处理中已经存在，典型代表就是非局部均值滤波，到了深度学习时代，在计算机视觉中，这种通过关注特征图中所有位置并在嵌入空间中取其加权平均值来计算某位置处的响应的方法，就叫做**自注意力**。
 
-然后来看看深度神经网络中的non-local操作如何定义，也就是下面这个式子，这是一个通式，其中$x$是输入，$y$是输出，$i$和$j$代表输入的某个位置，可以是序列、图像或者视频上的位置，不过因为我比较熟悉图像，所以后文的叙述都以图像为例。因此$x_i$是一个向量，维数和通道一样；$f$是一个计算任意两点的相似性函数，$g$是一个一元函数，用于信息变换；$\mathcal{C}$是归一化函数，保证变换前后整体信息不变。所以，**下面的式子，其实就是为了计算某个位置的值，需要考虑当前这个位置的值和所有位置的值的关系，然后利用这种获得的类似attention的关系对所有位置加权求和得到当前位置的值。**
+然后来看看深度神经网络中的 non-local 操作如何定义，也就是下面这个式子，这是一个通式，其中$x$是输入，$y$是输出，$i$和$j$代表输入的某个位置，可以是序列、图像或者视频上的位置，不过因为我比较熟悉图像，所以后文的叙述都以图像为例。因此$x_i$是一个向量，维数和通道一样；$f$是一个计算任意两点的相似性函数，$g$是一个一元函数，用于信息变换；$\mathcal{C}$是归一化函数，保证变换前后整体信息不变。所以，**下面的式子，其实就是为了计算某个位置的值，需要考虑当前这个位置的值和所有位置的值的关系，然后利用这种获得的类似 attention 的关系对所有位置加权求和得到当前位置的值。**
 
 $$
 \mathbf{y}_{i}=\frac{1}{\mathcal{C}(\mathbf{x})} \sum_{\forall j} f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right) g\left(\mathbf{x}_{j}\right)
 $$
 
-那么，确定了这个通式，在图像上应用，只需要确定$f$、$g$和$\mathcal{C}$即可，首先，由于$g$的输入是一元的，可以简单将$g$设置为1x1卷积，代表线性嵌入，算式为$g\left(\mathbf{x}_{j}\right)=W_{g} \mathbf{x}_{j}$。关于$f$和$\mathcal{C}$需要配对使用，作用其实就是计算两个位置的相关性，可选的函数有很多，具体如下。
+那么，确定了这个通式，在图像上应用，只需要确定$f$、$g$和$\mathcal{C}$即可，首先，由于$g$的输入是一元的，可以简单将$g$设置为 1x1 卷积，代表线性嵌入，算式为$g\left(\mathbf{x}_{j}\right)=W_{g} \mathbf{x}_{j}$。关于$f$和$\mathcal{C}$需要配对使用，作用其实就是计算两个位置的相关性，可选的函数有很多，具体如下。
 
 - **Gaussian**
-高斯函数，两个位置矩阵乘法然后指数映射，放大差异。
-$$
-f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)=e^{\mathbf{x}_{i}^{T} \mathbf{x}_{j}}
-$$
-$$
-\mathcal{C}(x)=\sum_{\forall j} f\left(\mathrm{x}_{i}, \mathrm{x}_{j}\right)
-$$
+  高斯函数，两个位置矩阵乘法然后指数映射，放大差异。
+  $$
+  f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)=e^{\mathbf{x}_{i}^{T} \mathbf{x}_{j}}
+  $$
+  $$
+  \mathcal{C}(x)=\sum_{\forall j} f\left(\mathrm{x}_{i}, \mathrm{x}_{j}\right)
+  $$
 - **Embedded Gaussian**
-嵌入空间的高斯高斯形式，$\mathcal{C}(x)$同上。
-$$
-\theta\left(\mathbf{x}_{i}\right)=W_{\theta} \mathbf{x}_{i} \text { and } \phi\left(\mathbf{x}_{j}\right)=W_{\phi} \mathbf{x}_{j}
-$$
-$$
-f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)=e^{\theta\left(\mathbf{x}_{i}\right)^{T} \phi\left(\mathbf{x}_{j}\right)}
-$$
-论文中这里还特别提了一下，如果将$\mathcal{C}(x)$考虑进去，对$\frac{1}{\mathcal{C}(\mathbf{x})} f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)$而言，这其实是一个softmax计算，因此有$\mathbf{y}=\operatorname{softmax}\left(\mathbf{x}^{T} W_{\theta}^{T} W_{\phi} \mathbf{x}\right) g(\mathbf{x})$，这个其实就是NLP中常用的自注意力，因此这里说，自注意力是Non-local的特殊形式，Non-local将自注意力拓展到了图像和视频等高维数据上。
+  嵌入空间的高斯高斯形式，$\mathcal{C}(x)$同上。
+  $$
+  \theta\left(\mathbf{x}_{i}\right)=W_{\theta} \mathbf{x}_{i} \text { and } \phi\left(\mathbf{x}_{j}\right)=W_{\phi} \mathbf{x}_{j}
+  $$
+  $$
+  f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)=e^{\theta\left(\mathbf{x}_{i}\right)^{T} \phi\left(\mathbf{x}_{j}\right)}
+  $$
+  论文中这里还特别提了一下，如果将$\mathcal{C}(x)$考虑进去，对$\frac{1}{\mathcal{C}(\mathbf{x})} f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)$而言，这其实是一个 softmax 计算，因此有$\mathbf{y}=\operatorname{softmax}\left(\mathbf{x}^{T} W_{\theta}^{T} W_{\phi} \mathbf{x}\right) g(\mathbf{x})$，这个其实就是 NLP 中常用的自注意力，因此这里说，自注意力是 Non-local 的特殊形式，Non-local 将自注意力拓展到了图像和视频等高维数据上。但是，softmax 这种注意力形式不是必要的，因此作者设计了下面的两个 non-local 操作。
+- **Dot product**
+  这里去掉了指数函数形式，$\mathcal{C}(x)$的形式也相应改变为$x$上的像素数目。
+  $$
+  f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)=\theta\left(\mathbf{x}_{i}\right)^{T} \phi\left(\mathbf{x}_{j}\right)
+  $$
+  $$
+  \mathcal{C}(\mathbf{x})=N
+  $$
+- **Concatenation**
+  最后，是一种 concat 的形式，$[\cdot, \cdot]$表示 concat 操作，$\mathcal{C}(x)$同上。
+  $$
+  f\left(\mathbf{x}_{i}, \mathbf{x}_{j}\right)=\operatorname{ReLU}\left(\mathbf{w}_{f}^{T}\left[\theta\left(\mathbf{x}_{i}\right), \phi\left(\mathbf{x}_{j}\right)\right]\right)
+  $$
 
+有了上面定义的 non-local 算子，就可以定义**non-local 模块**了，其定义如下，其中的$+\mathbf{x}_{i}$表示残差连接，这种残差形式可以保证该模块可以嵌入预训练模型中，只要将$W_z$初始化为 0 即可。其实这中间的实现都是通过 1x1 卷积完成的，因此输出和输入可以控制为同等通道数。
 
+$$
+\mathbf{z}_{i}=W_{z} \mathbf{y}_{i}+\mathbf{x}_{i}
+$$
+
+一个时空格式的 non-local 模块如下图，我们从二维图像的角度来看，可以忽略那个$T$，直接将其置为 1 即可。所以，输入是$(h,w,1024)$，经过两个权重变换$W_\theta$和$W_\phi$得到降维后的两个特征图，都为$(h, w, 512)$，它们两者 reshape 后变为$(h\times w, 512)$，之后再其中一个转置后矩阵乘法另一个，得到相似性矩阵$(h\times w, h \times w)$，然后再最后一个维度上进行 softmax 操作。上述这个操作得到一种自注意力图，表示每个像素与其他位置像素的关系。然后将原始输入通过变换$g$得到一个$(h\times w, 512)$的输入矩阵，它和刚刚的注意力图矩阵乘法，输出为$(h\times w, 512)$，这时，每个位置的输出值其实就是其他位置的加权求和的结果。最后，通过 1x1 卷积来升维恢复通道，保证输入输出同维。
+![](/assets/non-local-block.png)
+
+这篇文章有很不错的[第三方 Pytorch 实现](https://github.com/AlexHex7/Non-local_pytorch)，想了解更多细节的可以去看看源码和论文，其实实现是很简单的。
+
+最后，简单总结一下这篇文章。提出了 non-local 模块，这是一种自注意力的泛化表达形式，Transformer 的成功已经证明自注意力的长程交互信息捕获能力很强，对网络尤其是处理视频的网络如 I3D 是有参考意义的。当然，其本质还是空间层面的注意力，如果考虑通道注意力或许会获得更好的效果，而且 non-local 模块的矩阵计算开销其实不低，这也制约了 non-local 的广泛应用，略微有点遗憾。
 
 ### **SENet**
 
-SENet应该算是Non-local的同期成果
-
+SENet 应该算是 Non-local 的同期成果
