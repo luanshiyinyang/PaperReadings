@@ -18,14 +18,14 @@
 
 下面我列举一些常见的使用了注意力机制的卷积神经网络，我在下面一节会详细介绍它们。
 
-1. NL(Non-local Neural Networks)
-2. SENet(Squeeze-and-Excitation Networks)
-3. BAM(Bottleneck Attention Module)
-4. CBAM(Convolutional Block Attention Module)
+1. **NL(Non-local Neural Networks)**
+2. **SENet(Squeeze-and-Excitation Networks)**
+3. **BAM(Bottleneck Attention Module)**
+4. **CBAM(Convolutional Block Attention Module)**
 5. $A^2$-Nets(Double Attention Networks)
 6. GSoP-Net(Global Second-order Pooling Convolutional Networks)
-7. ECA-Net(Efficient Channel Attention for Deep Convolutional Neural Networks)
-8. GC-Net(Global context network for medical image segmentation)
+7. GCNet(Non-local Networks Meet Squeeze-Excitation Networks and Beyond)
+8. ECA-Net(Efficient Channel Attention for Deep Convolutional Neural Networks)
 9.  SKNet(Selective Kernel Networks)
 10. CC-Net(Criss-Cross Attention for Semantic Segmentation)
 11. ResNeSt(ResNeSt: Split-Attention Networks)
