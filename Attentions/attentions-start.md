@@ -27,7 +27,7 @@
 7. GCNet(Non-local Networks Meet Squeeze-Excitation Networks and Beyond)
 8. ECA-Net(Efficient Channel Attention for Deep Convolutional Neural Networks)
 9.  SKNet(Selective Kernel Networks)
-10. CC-Net(Criss-Cross Attention for Semantic Segmentation)
+10. CCNet(Criss-Cross Attention for Semantic Segmentation)
 11. ResNeSt(ResNeSt: Split-Attention Networks)
 12. Triplet Attention(Convolutional Triplet Attention Module)
 
