@@ -99,6 +99,7 @@ SENet 设计了 SE 模块来提升模型对 channel 特征的敏感性，CVPR201
 在具体了解SKNet之前，必须知道不少的前置知识，比如多分支卷积神经网络（不同size的卷积核特征融合）、分组卷积及深度可分离卷积及膨胀卷积（减少运算量的高效卷积方式）、注意力机制（增强网络的重点关注能力），这些我这边就不多做解释了。
 
 ![](https://i.loli.net/2020/12/07/gZNdSo9ImtO1HjE.png)
+
 上图就是SK卷积的一个基础实现，为了方便描述，作者只采用了两个分支，事实上可以按需增加分支，原理是一样的。可以看到，从左往右分别是三个part：Split、Fuse和Select，下面我就一步步来解释这三个操作是如何获得自适应感受野信息的，解释是完全对照上面这个图来的。
 
 **Split**：对给定的特征图$\mathbf{X} \in \mathbb{R}^{H^{\prime} \times W^{\prime} \times C^{\prime}}$，对其采用两种卷积变换$\widetilde{\mathcal{F}}: \mathbf{X} \rightarrow \tilde{\mathbf{U}} \in \mathbb{R}^{H \times W \times C}$和$\mathbf{X} \rightarrow \widehat{\mathbf{U}} \in \mathbb{R}^{H \times W \times C}$，它们只有卷积核size不同（这里以3和5为例），其余配置一致（卷积采用深度可分离卷积，5x5卷积采用3x3卷进进行膨胀）。这一步，通过两个变换构建了两个感受野的分支，形成了两个特征图$\tilde{\mathbf{U}}$和$\widehat{\mathbf{U}}$，它们的维度都是$H\times W \times C$。
