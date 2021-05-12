@@ -1,6 +1,6 @@
 # RelationTrack解读
 
-> MOT领域的一个新的SOTA方法，在FairMOT的基础上提出了特征图解耦和全局信息下的ReID Embedding的学习，前者和CSTrack思路类似，后者则采用了Doformable DETR里的deformable attention配合Transformer Encoder来捕获和目标相关的全图信息增强ReID的表示能力。
+> MOT领域的一个新的SOTA方法，在FairMOT的基础上提出了特征图解耦和全局信息下的ReID Embedding的学习，前者和CSTrack思路类似，后者则采用了Deformable DETR里的deformable attention配合Transformer Encoder来捕获和目标相关的全图信息增强ReID的表示能力。
 
 ## 简介
 
