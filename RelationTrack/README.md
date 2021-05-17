@@ -6,6 +6,16 @@
 
 现有的多目标跟踪方法为了速度通常会将检测和ReID任务统一为一个网络来完成，然而这两个任务需要的是不同的特征，这也是之前很多方法提到的任务冲突问题。为了缓解这个问题，论文作者设计了Global Context Disentangling（GCD）模块来对骨干网络提取到的特征解耦为任务指定的特征。此外，作者还发现，此前的方法在使用ReID特征为主的关联中，只考虑了检测框的局部信息而忽视了全局语义相关性的考虑。对此，作者设计了Guided Transformer Encoder（GTE）模块来学习更好的全局感知的ReID特征，这个模块不是密集相关性的而是捕获query节点和少量的自适应关键样本位置之间的相关性信息。因此非常高效。实验表明，由GCD和GTE构成的跟踪框架RelationTrack在MOT16和MOT17上均达到SOTA表现，在MOT20上更是超过此前的所有方法。
 
+- 论文标题
+
+    RelationTrack: Relation-aware Multiple Object Tracking with Decoupled Representation
+- 论文地址
+
+    http://arxiv.org/abs/2105.04322
+- 论文源码
+
+    暂未开源
+
 ## 介绍
 
 目前主流的多目标跟踪方法主要包含两个子模型，即用于目标定位的检测模型和用于轨迹连接的ReID模型。分开训练检测和ReID两个模型可以在精度上获得较好的表现，然而推理速度较慢，很难达到实时跟踪的效果。一个较好的解决方案就是JDE首先提出的在一个网络中联合训练检测和ReID的思路。
