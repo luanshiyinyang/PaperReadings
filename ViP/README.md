@@ -22,7 +22,7 @@
 
 这篇论文中，作者希望探索一个MLP结构仅仅使用ImageNet-1k数据集训练即可达到不错的效果，因此，提出了Vision Permutator结构（ViP）。具体而言是，Vision Permutator 通过提出一种新的层来创新现有的 MLP 架构，**该结构可以基于基本矩阵乘法更有效地编码空间信息。** 不同于现有的MLP模型，如MLP-Mixer和ResMLP，他们通过展平空间维度然后再线性投影来编码空间信息的，也就是说作用于尺寸为`tokens x channels`的张量上，这导致了2D特征图的位置信息丢失，ViP则保持了原始输入token的空间维度并沿着宽和高两个维度编码空间信息，这样可以保留充分的位置信息。
 
-![](./assets/vip.png)
+![](https://s2.loli.net/2021/12/04/uNV1EcwBTeIsrJ8.png)
 
 具体而言，和很多视觉Transformer结构类似，ViP首先通过对图像切块进行token化，将切得得小patch通过线性投影映射为token embedding，如上图所示。此时获得的token embedding的维度是`height x width x channels`，它们被送入一系列的Permutator block中，这个Permutator block包含一个用来编码空间信息的Permute-MLP和一个用来混合通道信息的Channel-MLP，这两个结构下文会详细介绍。随后经过这些block获得的特征会送入GAP和Linear层中用于图像分类任务。**和现有的很多MLP结构混合两个空间方向信息的方式相比，ViP沿着不同的方向独立处理输入特征，保证token具有特定方向的信息，这已经被视觉中的很多方法证明是很重要的（如CoordAttention）。**
 
@@ -30,7 +30,7 @@
 
 ViP的整体结构如下图所示，该网络以224x224的图像作为输入并且将其均分为多个图像块（image patches），如14x14或7x7，这些图像块随后被映射为linear embedding（也叫token），这个映射通过一个共享的线性层完成，这和MLP-Mixer是一致的。
 
-![](./assets/vip.png)
+![](https://s2.loli.net/2021/12/04/uNV1EcwBTeIsrJ8.png)
 
 接着，这些token送入一序列的Permutator来编码空间和通道信息，产生的新token沿着空间维度做平均再用全连接层做分类。下文将详细描述核心的Permutator block以及网络的一些设置。
 
@@ -45,11 +45,11 @@ $$
 \end{aligned}
 $$
 
-![](./assets/permutator.png)
+![](https://s2.loli.net/2021/12/04/OiLuHYXpZ3xMjRq.png)
 
 由于Channel-MLP就是原始Transformer中的FFN结构，这里就不赘述了，下面来看这篇论文最核心的**Permute-MLP**。它的详细结构如下图所示，可以发现和之前视觉Transformer结构以及MLP-Mixer这类工作不一样的地方，它的输入其实不是二维的（即$tokens \times channels = HW \times C$），而是三维的。
 
-![](./assets/permutemlp.png)
+![](https://s2.loli.net/2021/12/04/ux1T23KMNkVqdim.png)
 
 如上图所示，Permute-MLP包含三个分支，每个分支负责沿高度、宽度或通道维度对信息进行编码。其中通道信息的编码比较简单，只需要使用一个权重为$\mathbf{W}_{C} \in \mathbb{R}^{C \times C}$的全连接层对输入进行$\mathbf{X}$进行线性投影即可，得到$\mathbf{X}_{C}$，这就是上图最下面的分支。
 
@@ -61,7 +61,7 @@ $$
 
 作者也在论文中给出了Permute-MLP的PyTorch风格的伪代码，如下所示。
 
-![](./assets/code.png)
+![](https://s2.loli.net/2021/12/04/bfEaxRFipTyl3gz.png)
 
 接着，作者发现上面这种相加融合三个分支的信息的方式采用的这种逐元素相加的操作效果不是很好，因此进一步提出了重校准不同分支重要性的加权融合方式，并顺势提出了Weighted Permute-MLP，和split attention操作类似，只不过split attention是对组卷积的一组tensor进行，这里是对$\mathbf{X}_{H}, \mathbf{X}_{W}$和$\mathbf{X}_{C}$进行的。这个过程并不复杂，我这里直接贴上作者的源码了，需要注意的是，下文所说的ViP默认均采用这种Weight Permute-MLP。
 
@@ -109,17 +109,17 @@ class WeightedPermuteMLP(nn.Module):
 
 下图是ViP的各种变种形式，采用不同的配置。patch size越大模型越小，ViP-Small/14与ViP-Small/16仅有一个块嵌入模块后接16个Permutators，而ViP-Small/7、ViP-Medium/7以及ViP-Large/7则具有两个阶段，每个阶段有一个块嵌入模块，对于这些模型，作者添加了一些 Permutator，用于编码细粒度表示，作者发现这对模型性能有益。
 
-![](./assets/vips.png)
+![](https://s2.loli.net/2021/12/04/V4CtoTKH21xhYWX.png)
 
 ## 实验
 
 下表是和近期MLP结构的对比，不难看到，ViP-Small/7凭借25M参数取得了81.5%的top1精度，这优于大部分MLP结构，ViP-Medium/7则凭借55M参数取得了82.7%top1精度，超越其他所有MLP结构，ViP-Large/7则凭借88M参数将精度进一步提升到了83.2%，为当前MLP结构中最高精度。
 
-![](./assets/exp1.png)
+![](https://s2.loli.net/2021/12/04/7NLoFi3Ikfe4wVS.png)
 
 下表则是ViP和SOTA的CNN和ViT的对比结果，虽然比有的方法效果好，**但是距离SOTA的CNN和视觉Transformer还有不小距离，也就是说，视觉MLP模型和视觉Transformer结构一样还有很大的改进空间。**
 
-![](./assets/exp2.png)
+![](https://s2.loli.net/2021/12/04/4mT8OMgDz3FxGyI.png)
 
 消融实验部分感兴趣的可以查看原论文，这里不多赘述了。
 
